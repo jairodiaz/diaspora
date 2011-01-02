@@ -9,35 +9,6 @@ OS=`uname -s`
 
 [ -e config/server.sh ] && source config/server.sh
 
-function init_suburi_assets
-# fix a symlink corresponding to sub-uri
-{
-    find public -maxdepth 1 -type l -delete
-    sub_uri=$(./script/get_env.sh pod_uri.path)
-    if [  -n "$sub_uri" -a "$sub_uri"  != "/" ]; then
-        cd public; ln -sf . ${sub_uri##/}; cd ..
-    fi
-}
-
-function init_public
-# Create all dynamically generated files in public/ folder
-{
-    bundle exec thin \
-        -d --pid log/thin.pid --address localhost --port $THIN_PORT \
-        start
-    for ((i = 0; i < 30; i += 1)) do
-        sleep 2
-        wget -q -O tmp/server.html http://localhost:$THIN_PORT && \
-            rm tmp/server.html && break
-    done
-    bundle exec thin --pid log/thin.pid stop
-    if [ -e tmp/server.html ]; then
-        echo "Cannot get index.html from web server (aborted)" >&2
-        return 2
-    fi
-    bundle exec jammit
-}
-
 function chk_service
 {
     port=${1:?Missing port}
@@ -126,38 +97,20 @@ fi
 
 redis_config
 
-# Force AGPL
-if [ -w public -a ! -e  public/source.tar.gz ]; then
-    branch=$( git branch | awk '/^[*]/ {print $2}')
-    tar czf public/source.tar.gz  `git ls-tree -r $branch | awk '{print $4}'`
-fi
+#  Setup the public (assets) directory
+[ -w public ] && ./script/public_setup.sh $THIN_PORT
 if [ ! -e public/source.tar.gz ]; then
     echo "Error: Can't find, or even create, public/source.tar.gz. Exiting" >&2
     exit 65
-fi
-
-# create static public/well-known/host-meta if required
-if [[ -w public  &&
-    (! -e public/well-known/host-meta ||
-          public/well-known/host-meta -ot config/app_config.yml) ]]
-then
-    bundle exec erb -r config/environment.rb app/views/publics/host_meta.erb \
-        2>/dev/null >public/well-known/host-meta
-fi
-
-# Precache jammit assets
-if [[ -w public  && ! -e 'public/stylesheets/application.css' ]]; then
-    if [ "$INIT_PUBLIC" != 'no' ]; then
-        echo "Making first-time server initialization."
-        init_public
-    fi
 fi
 if [ ! -e 'public/stylesheets/application.css' ]; then
     echo 'Jammit precache error (now or at install)' >&2
     exit 66
 fi
-
-[ -w public ] && init_suburi_assets
+if [ ! -e public/well-known/host-meta ]; then
+    echo "Error: Can't find, or even create, public/well-known/host-meta" >&2
+    exit 67
+fi
 
 mkdir -p -v log/thin/
 bundle exec ruby ./script/websocket_server.rb&
