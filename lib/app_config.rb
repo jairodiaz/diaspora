@@ -16,8 +16,8 @@ class AppConfig
 
   def self.configure_for_environment(env)
     load_config_for_environment(env)
-    generate_pod_uri
-    normalize_pod_url
+    generate_uris
+    normalize_urls
     check_pod_uri
   end
 
@@ -38,20 +38,32 @@ class AppConfig
     end
   end
 
-  def self.generate_pod_uri
+  def self.generate_uris
     require 'uri'
+   
+    self.config_vars[:local_url] = 
+        self.config_vars[:local_url]  || "localhost:3000"
     unless self.config_vars[:pod_url] =~ /^(https?:\/\/)/
       self.config_vars[:pod_url] = "http://#{self.config_vars[:pod_url]}"
     end
+    unless self.config_vars[:local_url] =~ /^(https?:\/\/)/
+      self.config_vars[:local_url] = "http://#{self.config_vars[:local_url]}"
+    end
     begin
       self.config_vars[:pod_uri] = URI.parse(self.config_vars[:pod_url])
-    rescue
-      puts "WARNING: pod url " + self.config_vars[:pod_url] + " is not a legal URI"
+      self.config_vars[:local_uri] = URI.parse(self.config_vars[:local_url])
+    rescue => e
+      puts "WARNING: illegal local/pod url " + e.inspect
     end
   end
 
-  def self.normalize_pod_url
+  def self.generate_pod_uri
+    AppConfig.generate_uris
+  end 
+
+  def self.normalize_urls
     self.config_vars[:pod_url] = self.config_vars[:pod_uri].normalize.to_s
+    self.config_vars[:local_url] = self.config_vars[:local_uri].normalize.to_s
   end
 
   def self.check_pod_uri

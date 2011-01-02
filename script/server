@@ -56,14 +56,8 @@ function redis_config
         config/redis.conf
 }
 
-# Scan for -p, find out what port thin is about to use.
-args="$DEFAULT_THIN_ARGS $@"
-prev_arg=''
-for arg in $( echo $args | awk '{ for (i = 1; i <= NF; i++) print $i}')
-do
-    [ "$prev_arg" = '-p' ] && THIN_PORT="$arg"
-    prev_arg="$arg"
-done
+THIN_PORT=$(./script/get_env.sh 'local_uri.port')
+SOCKET_PORT=$(./script/get_env.sh 'socket_port')
 
 # Is someone listening on the ports already? (ipv4 only test ?)
 services=$( chk_service $THIN_PORT )
@@ -116,4 +110,4 @@ mkdir -p -v log/thin/
 bundle exec ruby ./script/websocket_server.rb&
 redis-server config/redis.conf &>log/redis-console.log &
 QUEUE=* bundle exec rake resque:work&
-bundle exec thin start $args
+bundle exec thin start -p ${THIN_PORT:-'3000'} $@

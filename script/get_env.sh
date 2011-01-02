@@ -18,6 +18,9 @@ then
         puts "pod_uri.host\t" + AppConfig[:pod_uri].host.to_s
         puts "pod_uri.path\t" + AppConfig[:pod_uri].path.to_s
         puts "pod_uri.port\t" + AppConfig[:pod_uri].port.to_s
+        puts "local_uri.host\t" + AppConfig[:local_uri].host.to_s
+        puts "local_uri.path\t" + AppConfig[:local_uri].path.to_s
+        puts "local_uri.port\t" + AppConfig[:local_uri].port.to_s
 EOT
 fi
 
