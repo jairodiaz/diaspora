@@ -26,3 +26,11 @@ end
 
 # Initialize the rails application
 Diaspora::Application.initialize!
+
+# Presume the assets are exposed on the sub_uri.
+if AppConfig[ :pod_uri].path != "/"
+    ActionController::Base.asset_host =
+        Proc.new{ |source, request|
+           "http://" + request.host_with_port + AppConfig[:pod_uri].path
+        }
+end
