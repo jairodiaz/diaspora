@@ -1,0 +1,1 @@
+Rails.application.routes.default_url_options = {:script_name => "/my_suburi"}
