@@ -73,7 +73,7 @@ describe Notification do
       @aspect2 = @user2.aspects.create(:name => "winners")
       connect_users(@user, @aspect, @user2, @aspect2)
       @user3 = make_user
-      @aspect3 = @user.aspects.create(:name => "winners")
+      @aspect3 = @user3.aspects.create(:name => "winners")
       connect_users(@user, @aspect, @user3, @aspect3)
       sm = @user.post(:status_message, :message => "comment!", :to => :all)
       @user2.reload.comment("hey", :on => sm)
