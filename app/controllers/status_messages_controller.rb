@@ -81,6 +81,10 @@ class StatusMessagesController < ApplicationController
         :person => person_hash[comment.person_id]
       }
     end
+
+    if note = Notification.where(:target_id => params[:id], :user_id => current_user.id).first
+      note.update_attributes(:unread => false)
+    end
     respond_with @status_message
   end
 end

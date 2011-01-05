@@ -20,7 +20,7 @@ class Notification
   attr_accessible :target_id, :kind, :user_id, :person_id, :unread
 
   def self.for(user, opts={})
-    self.where(opts.merge!(:user_id => user.id)).order('created_at desc')
+    self.where(opts.merge!(:user_id => user.id)).order('updated_at desc')
   end
 
   def self.notify(user, object, person)

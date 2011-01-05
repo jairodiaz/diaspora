@@ -13,6 +13,9 @@ describe StatusMessagesController do
   let!(:user2)   { make_user }
   let!(:aspect2) { user2.aspects.create(:name => "WIN!!") }
 
+  let(:user3)   { make_user }
+  let(:aspect3) { user3.aspects.create(:name => "WIN!!") }
+
   before do
     connect_users(user1, aspect1, user2, aspect2)
     request.env["HTTP_REFERER"] = ""
@@ -44,6 +47,17 @@ describe StatusMessagesController do
 
       get :show, :id => message.id
       response.body.should match /Youtube: title/
+    end
+    it "marks notifications as read" do
+      connect_users(user1, aspect1, user3, aspect3)
+      message = user1.reload.post :status_message, :message => "Respond to this with a video!", :to => aspect1.id
+      @comment = user2.comment "none", :on => message
+      @comment = user3.comment "none", :on => message
+      Notification.where(:target_id => message.id).first.unread.should be_true
+
+      get :show, :id => message.id
+
+      Notification.where(:target_id => message.id).first.unread.should be_false
     end
   end
   describe '#create' do
