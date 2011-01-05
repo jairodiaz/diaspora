@@ -10,9 +10,10 @@ class Notification
   key :target_id, ObjectId
   key :kind, String
   key :unread, Boolean, :default => true
+  key :person_ids, Array, :typecast => 'ObjectId'
 
   belongs_to :user
-  belongs_to :person
+  many :people, :class => Person, :in => :person_ids
 
   timestamps!
 
@@ -25,13 +26,37 @@ class Notification
   def self.notify(user, object, person)
     if object.respond_to? :notification_type
       if kind = object.notification_type(user, person)
-        n = Notification.create(:target_id => object.id,
-                            :kind => kind,
-                            :person_id => person.id,
-                            :user_id => user.id)
-        n.socket_to_uid(user.id) if n
+        if object.is_a? Comment
+          n = concatenate_or_create(user, object.post, person, kind)
+        else
+          n = make_notification(user, object, person, kind)
+        end
+        n.socket_to_uid(user.id, :actor => person) if n
         n
-       end
+      end
     end
+  end
+
+private
+
+  def self.concatenate_or_create(user, object, person, kind)
+    if n = Notification.where(:target_id => object.id,
+                               :kind => kind,
+                               :user_id => user.id).first
+      n.people << person
+      n.save!
+      n
+    else
+      n  = make_notification(user, object, person, kind)
+    end
+  end
+
+  def self.make_notification(user, object, person, kind)
+    n = Notification.new(:target_id => object.id,
+                        :kind => kind,
+                        :user_id => user.id)
+    n.people << person
+    n.save!
+    n
   end
 end

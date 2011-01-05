@@ -108,7 +108,7 @@ describe Person do
     end
 
     it "deletes all notifications from a person's actions" do
-      note = Notification.create(:person_id => @deleter.id, :user_id => @user.id)
+      note = Notification.make_notification(@user , @status, @deleter, "type") #status is a fake notification
       @deleter.destroy
       Notification.where(:id => note.id).first.should be_nil
     end

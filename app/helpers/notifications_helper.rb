@@ -8,9 +8,9 @@ module NotificationsHelper
     when 'new_request'
       translation
     when 'comment_on_post'
-      comment = Comment.first(:id => note.target_id)
-      if comment
-       "#{translation} #{link_to t('notifications.post'), object_path(comment.post)}".html_safe
+      post = Post.first(:id => note.target_id)
+      if post
+       "#{translation} #{link_to t('notifications.post'), object_path(post)}".html_safe
       else
         "#{translation} #{t('notifications.deleted')} #{t('notifications.post')}"
       end
@@ -24,5 +24,13 @@ module NotificationsHelper
     else
       t('no_new_notifications')
     end
+  end
+
+  def notification_people_link(note)
+    note.people.collect{ |person| link_to("#{person.name.titlecase}", person_path(person))}.join(" , ").html_safe
+  end
+  
+  def peoples_names(note)
+    note.people.map{|p| p.name}.join(",")
   end
 end

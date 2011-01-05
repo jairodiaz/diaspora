@@ -99,4 +99,16 @@ namespace :db do
       end
     end
   end
+  task :move_person_notifications do
+    require File.dirname(__FILE__) + '/../../config/environment'
+    Notification.all.each do |note|
+      if note.respond_to? :person_id
+        person_id = note.person_id
+        note.person_ids << person_id
+        note.person_id = nil
+        note.save!
+      end
+    end
+
+  end
 end

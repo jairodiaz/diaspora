@@ -45,7 +45,7 @@ module SocketsHelper
         v = render_to_string(:partial => 'comments/comment', :locals => {:hash => {:comment => object, :person => object.person}})
 
       elsif object.is_a? Notification
-        v = render_to_string(:partial => 'notifications/popup', :locals => {:note => object, :person => object.person})
+        v = render_to_string(:partial => 'notifications/popup', :locals => {:note => object, :person => opts[:actor]})
 
       else
         v = render_to_string(:partial => type_partial(object), :locals => {:post => object, :current_user => user}) unless object.is_a? Retraction
