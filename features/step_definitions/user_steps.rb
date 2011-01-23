@@ -68,3 +68,11 @@ end
 When /^I click on the contact request$/ do
   find(".person.request.ui-draggable a").click
 end
+
+When /^I delete the last status$/ do
+  evaluate_script <<-JS
+    window.confirm = function() { return true; };
+    $(".stream_element .delete").hover().click();
+    location.reload();
+  JS
+end
